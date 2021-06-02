@@ -1,29 +1,31 @@
 import { ExpoWebGLRenderingContext, GLView } from 'expo-gl';
-import { Renderer, TextureLoader } from 'expo-three';
-import React, { useEffect, useState } from 'react';
+import { Renderer, TextureLoader, THREE } from 'expo-three';
+import React, { useState } from 'react';
 import {
   AmbientLight,
   BoxBufferGeometry,
-  CircleBufferGeometry,
   Fog,
   GridHelper,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PerspectiveCamera,
   PointLight,
   Scene,
   SpotLight,
 } from 'three';
-export interface CubeCameraCoordinatesProps {
+import { Asset } from 'expo-asset';
+
+export interface RoomCameraCoordinatesProps {
   cameraPositionX: number;
   cameraPositionY: number;
   cameraPositionZ: number;
 }
 
-export interface CubeProps {
-  CameraCoordinates: CubeCameraCoordinatesProps;
+export interface RoomProps {
+  CameraCoordinates: RoomCameraCoordinatesProps;
 }
-const Cube: React.FC<CubeProps> = ({ CameraCoordinates }) => {
+const Room: React.FC<RoomProps> = ({ CameraCoordinates }) => {
   let timeout: number;
 
   React.useEffect(() => {
@@ -31,12 +33,26 @@ const Cube: React.FC<CubeProps> = ({ CameraCoordinates }) => {
     return () => clearTimeout(timeout);
   }, []);
 
+  const [materialsBCK, setMaterialBCK] = useState<MeshBasicMaterial[]>([]);
+
+  const GetRoomBCK = async () => {
+    const materials = [];
+    const asset = Asset.fromModule(require('./img.png'));
+    await asset.downloadAsync();
+    const texture = new TextureLoader().load(asset.localUri);
+
+    for (let i = 0; i < 6; i++) {
+      materials.push(new THREE.MeshBasicMaterial({ map: textures[i] }));
+    }
+    setMaterialBCK(materials);
+  };
+
   return (
     <GLView
       style={{ flex: 1 }}
       onContextCreate={async (gl: ExpoWebGLRenderingContext) => {
         const { drawingBufferWidth: width, drawingBufferHeight: height } = gl;
-        const sceneColor = 0x000000;
+        const sceneColor = 0x600000;
 
         // Create a WebGLRenderer without a DOM element
         const renderer = new Renderer({ gl });
@@ -44,10 +60,15 @@ const Cube: React.FC<CubeProps> = ({ CameraCoordinates }) => {
         renderer.setClearColor(sceneColor);
 
         const camera = new PerspectiveCamera(70, width / height, 0.01, 1000);
-        camera.position.set(2, 5, 5);
+        camera.position.set(
+          CameraCoordinates.cameraPositionX,
+          CameraCoordinates.cameraPositionY,
+          CameraCoordinates.cameraPositionZ,
+        );
 
         const scene = new Scene();
         scene.fog = new Fog(sceneColor, 1, 10000);
+        scene.add(new GridHelper(10, 10));
 
         const ambientLight = new AmbientLight(0x101010);
         scene.add(ambientLight);
@@ -60,16 +81,6 @@ const Cube: React.FC<CubeProps> = ({ CameraCoordinates }) => {
         spotLight.position.set(0, 500, 100);
         spotLight.lookAt(scene.position);
         scene.add(spotLight);
-
-        const cube = new CubeMesh();
-        scene.add(cube);
-
-        camera.lookAt(cube.position);
-
-        function update() {
-          cube.rotation.y += 0.01;
-          cube.rotation.x += 0.02;
-        }
 
         // Setup an animation loop
         const render = () => {
@@ -84,16 +95,16 @@ const Cube: React.FC<CubeProps> = ({ CameraCoordinates }) => {
   );
 };
 
-class CubeMesh extends Mesh {
+class IconMesh extends Mesh {
   constructor() {
     super(
       new BoxBufferGeometry(1.0, 1.0, 1.0),
       new MeshStandardMaterial({
-        map: new TextureLoader().load(require('./Companion_Cube-portal.jpg')),
+        map: new TextureLoader().load(require('./icon.png')),
         // color: 0xff0000
       }),
     );
   }
 }
 
-export default Cube;
+export default Room;
