@@ -2,7 +2,7 @@
 
 <div>
     <div align='left'>
-       <h3> WebGL Rendering Junto com ExpoGL e #THREEjs</h3>
+       <h3> WebGL Rendering Junto com <a href="https://docs.expo.io/versions/latest/sdk/gl-view/"> <b>ExpoGL</b></a> e <a href="https://threejs.org/"><b>TRHEEjs</b></a></h3>
     </div>
     <p>
         App desenvolvido para entrega de 
